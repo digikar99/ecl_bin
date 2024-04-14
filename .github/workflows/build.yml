@@ -29,18 +29,19 @@ jobs:
           tar -xvzf ecl-$VERSION.tgz
           cd ecl-$VERSION
           mkdir build
-          # ./configure
-          # make -j2
-          # sudo make install
+          ./configure
+          make -j2
+          sudo make install
 
-      # - name: test
-      #   run: |
-      #     ecl --eval '(quit)'
-      #     ecl --help
+      - name: test
+        run: |
+          ecl --eval '(quit)'
+          ecl --help
 
       - name: archive
         run: |
-         tar czf ${{ steps.env.outputs.FILE }} ${{ steps.env.outputs.DIR }}/build
+          export VERSION=${GITHUB_REF#refs/tags/}
+          tar czf ${{ steps.env.outputs.FILE }} /usr/local/bin/ecl /usr/local/lib/ecl-*/ /usr/local/lib/libecl.so* /usr/local/include/ecl /usr/local/share/info /usr/local/share/man/man1/ecl*
 
       - name: release
         uses: softprops/action-gh-release@v2
