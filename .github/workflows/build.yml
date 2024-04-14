@@ -10,7 +10,7 @@ jobs:
         id: env
         run: |
           echo "::set-output name=VERSION::${GITHUB_REF#refs/tags/}"
-          echo "::set-output name=DIR::ecl-${GITHUB_REF#refs/tags/}-x86-64-linux"
+          echo "::set-output name=DIR::ecl-${GITHUB_REF#refs/tags/}"
           echo "::set-output name=FILE::ecl-${GITHUB_REF#refs/tags/}-x86-64-linux-binary.tar.gz"
       - name: install
         run: |
