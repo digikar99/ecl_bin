@@ -40,16 +40,23 @@ jobs:
         run: |
          tar czf ${{ steps.env.outputs.FILE }} ${{ steps.env.outputs.DIR }}/build
 
-      - name: release
-        id: upload_artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{ steps.env.outputs.FILE }}
-          path: ${{ steps.env.outputs.FILE }}
 
-      - name: upload
-        uses: SierraSoftworks/gh-releases@v1.0.4
+      - name: release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          overwrite: 'true'
-          files: ${{ steps.env.outputs.FILE }}
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: false
+          
+      - name: upload
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_name: ${{ steps.env.outputs.FILE }}
+          asset_path: ./${{ steps.env.outputs.FILE }}
+          asset_content_type: application/gzip
