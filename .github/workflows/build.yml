@@ -1,0 +1,62 @@
+name: CI
+on:
+  push:
+    tags: [ "*" ]
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: env
+        id: env
+        run: |
+          echo "::set-output name=VERSION::${GITHUB_REF#refs/tags/}"
+          echo "::set-output name=DIR::ecl-${GITHUB_REF#refs/tags/}-x86-64-linux"
+          echo "::set-output name=FILE::ecl-${GITHUB_REF#refs/tags/}-x86-64-linux-binary.tar.gz"
+      - name: install
+        run: |
+          sudo apt update
+          sudo apt install -y curl gcc
+
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: build_ecl
+        run: |
+          export ECL=${GITHUB_REF#refs/tags/}
+          curl -L https://common-lisp.net/project/ecl/static/files/release/$ECL.tgz --output $ECL.tgz
+          tar -xvzf $ECL.tgz
+          cd $ECL
+          mkdir build
+          ./configure
+          make -j2
+          sudo make install
+
+      - name: test
+        run: |
+          ecl --eval '(quit)'
+          ecl --help
+
+      - name: archive
+        run: |
+         tar czf ${{ steps.env.outputs.FILE }} ${{ steps.env.outputs.DIR }}/build
+
+      - name: release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: upload
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_name: ${{ steps.env.outputs.FILE }}
+          asset_path: ./${{ steps.env.outputs.FILE }}
+          asset_content_type: application/gzip
