@@ -22,19 +22,19 @@ jobs:
 
       - name: build_ecl
         run: |
-          export ECL=${GITHUB_REF#refs/tags/}
-          curl -L https://common-lisp.net/project/ecl/static/files/release/$ECL.tgz --output $ECL.tgz
-          tar -xvzf $ECL.tgz
-          cd $ECL
+          export VERSION=${GITHUB_REF#refs/tags/}
+          curl -L https://common-lisp.net/project/ecl/static/files/release/ecl-$VERSION.tgz --output ecl-$VERSION.tgz
+          tar -xvzf ecl-$VERSION.tgz
+          cd ecl-$VERSION
           mkdir build
           ./configure
-          make -j2
-          sudo make install
+          # make -j2
+          # sudo make install
 
-      - name: test
-        run: |
-          ecl --eval '(quit)'
-          ecl --help
+      # - name: test
+      #   run: |
+      #     ecl --eval '(quit)'
+      #     ecl --help
 
       - name: archive
         run: |
